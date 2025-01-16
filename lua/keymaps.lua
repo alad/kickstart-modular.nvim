@@ -51,4 +51,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Abhi Save using cmd-s
+vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-s>', '<C-o>:w<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-s>', '<C-c>:w<CR>', { noremap = true, silent = true })
+
+-- Abhi: Incremental search
+vim.keymap.set('n', '<leader><leader>', '/')
+
+-- Abhi: Exit vim quickly
+vim.keymap.set('n', '<C-x><C-X>', '<cmd>qa!<CR>')
+vim.keymap.set('i', '<C-x><C-X>', '<Esc><cmd>qa!<CR>')
+
 -- vim: ts=2 sts=2 sw=2 et
