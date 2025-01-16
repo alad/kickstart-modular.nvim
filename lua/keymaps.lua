@@ -63,4 +63,6 @@ vim.keymap.set('n', '<leader><leader>', '/')
 vim.keymap.set('n', '<C-x><C-X>', '<cmd>qa!<CR>')
 vim.keymap.set('i', '<C-x><C-X>', '<Esc><cmd>qa!<CR>')
 
+vim.api.nvim_set_keymap('n', ';', ':', { noremap = true, silent = false })
+
 -- vim: ts=2 sts=2 sw=2 et
