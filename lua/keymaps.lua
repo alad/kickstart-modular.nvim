@@ -60,8 +60,9 @@ vim.api.nvim_set_keymap('v', '<C-s>', '<C-c>:w<CR>', { noremap = true, silent = 
 vim.keymap.set('n', '<leader><leader>', '/')
 
 -- Abhi: Exit vim quickly
-vim.keymap.set('n', '<C-x><C-X>', '<cmd>qa!<CR>')
-vim.keymap.set('i', '<C-x><C-X>', '<Esc><cmd>qa!<CR>')
+-- Removed. Clashes with c-x used for decrementing.
+vim.keymap.set('n', '<C-q><C-q>', '<cmd>qa!<CR>')
+vim.keymap.set('i', '<C-q><C-q>', '<Esc><cmd>qa!<CR>')
 
 vim.api.nvim_set_keymap('n', ';', ':', { noremap = true, silent = false })
 
