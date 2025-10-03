@@ -62,6 +62,12 @@ return {
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
+          local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+          -- Disable Ruff's hover in favor of Pyright's superior documentation
+          if client and client.name == 'ruff' then
+            client.server_capabilities.hoverProvider = false
+          end
           -- NOTE: Remember that Lua is a real programming language, and as such it is possible
           -- to define small helper and utility functions so you don't have to repeat yourself.
           --
@@ -90,6 +96,7 @@ return {
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
+          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
           map('grd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
@@ -210,7 +217,27 @@ return {
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {
+          -- Pyright for type checking, hover, and completions ONLY
+          settings = {
+            pyright = {
+              disableOrganizeImports = true, -- Let Ruff handle imports
+            },
+            python = {
+              analysis = {
+                autoImportCompletions = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = 'openFilesOnly',
+                -- CRITICAL: This disables all Pyright diagnostics
+                ignore = { '*' },
+                typeCheckingMode = 'off', -- Disable type checking diagnostics too
+              },
+            },
+          },
+        },
+        ruff = {
+          -- Ruff for linting, formatting, and import organization
+        },
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -230,8 +257,10 @@ return {
               completion = {
                 callSnippet = 'Replace',
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
+              diagnostics = {
+                globals = { 'hs' }, -- Hammerspoon global
+                -- disable = { 'missing-fields' },
+              },
             },
           },
         },
@@ -253,23 +282,23 @@ return {
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'ruff', -- Python linter and formatter
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
+        automatic_enable = false, -- Disable automatic enabling to prevent conflicts
       }
+
+      -- Manually setup servers to ensure our configurations are applied
+      for server_name, server_config in pairs(servers) do
+        local final_config = vim.tbl_deep_extend('force', {
+          capabilities = capabilities,
+        }, server_config)
+        require('lspconfig')[server_name].setup(final_config)
+      end
     end,
   },
 }
