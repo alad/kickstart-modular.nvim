@@ -287,17 +287,27 @@ return {
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = false,
-        automatic_enable = false, -- Disable automatic enabling to prevent conflicts
+        handlers = {
+          -- Don't auto-setup any servers since we're doing it manually below
+          function() end,
+        },
       }
 
-      -- Manually setup servers to ensure our configurations are applied
+      -- Manually setup servers using new Neovim 0.11 API
       for server_name, server_config in pairs(servers) do
-        local final_config = vim.tbl_deep_extend('force', {
-          capabilities = capabilities,
-        }, server_config)
-        require('lspconfig')[server_name].setup(final_config)
+        -- Get default config from lspconfig (cmd, filetypes, etc.)
+        local default_config = require('lspconfig.configs.' .. server_name).default_config
+
+        -- Merge defaults with capabilities and user config
+        local final_config = vim.tbl_deep_extend('force',
+          default_config,
+          { capabilities = capabilities },
+          server_config
+        )
+
+        -- Use new vim.lsp.config API instead of deprecated .setup()
+        vim.lsp.config(server_name, final_config)
+        vim.lsp.enable(server_name)
       end
     end,
   },
