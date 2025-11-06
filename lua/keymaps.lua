@@ -71,4 +71,6 @@ vim.keymap.set('i', '<C-q><C-q>', '<Esc><cmd>qa!<CR>')
 
 vim.api.nvim_set_keymap('n', ';', ':', { noremap = true, silent = false })
 
+vim.keymap.set('i', 'jk', '<Esc>')
+
 -- vim: ts=2 sts=2 sw=2 et
